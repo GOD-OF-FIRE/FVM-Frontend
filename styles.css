@@ -1,0 +1,13 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+* {
+  padding: 0px;
+  margin: 0px;
+}
+body {
+  background-color: #000;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+}
+.loginbox{
+    text-align: left;
+}
