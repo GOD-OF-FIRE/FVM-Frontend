@@ -1,21 +1,40 @@
 import React, { useState } from "react";
 import "../Style/LoginPage.css";
 import { isMobile } from "../utilities/DetectViewportSize";
-import {
-  IconButton,
-  Typography,
-  TextField,
-  MenuItem,
-  Button,
-  Box,
-} from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { Typography, TextField, MenuItem, Button, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import Header from "../Components/Header";
+
+const registerUser = async (userData) => {
+  try {
+    const response = await fetch("http://localhost:5000/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userData),
+    });
+
+    // Check if the response is not empty and contains valid JSON
+    const isJson = response.headers
+      .get("content-type")
+      ?.includes("application/json");
+    const data = isJson ? await response.json() : null;
+
+    if (!response.ok) {
+      // If response is not ok, throw the error with the returned message or default to "Failed to register user"
+      throw new Error(data?.message || "Failed to register user");
+    }
+
+    console.log("User registered successfully:", data);
+  } catch (error) {
+    console.error("Error registering user:", error);
+    alert(error.message);
+  }
+};
 
 const CreateAccount = () => {
   const mobileView = isMobile();
@@ -27,6 +46,7 @@ const CreateAccount = () => {
   const [dob, setDob] = useState(null);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleDateChange = (newDate) => {
     setDob(newDate);
@@ -51,6 +71,24 @@ const CreateAccount = () => {
     }
   };
 
+  const handleSubmit = async () => {
+    const userData = {
+      firstName,
+      lastName,
+      gender,
+      dob: dob.toISOString(),
+      username,
+      password,
+    };
+
+    try {
+      const result = await registerUser(userData); // Call the registerUser function
+      navigate("/"); // Navigate after successful registration
+    } catch (error) {
+      setErrorMessage(error.message); // Show error message on failure
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Header />
@@ -65,6 +103,8 @@ const CreateAccount = () => {
         <div className="header">
           <h1>Create Account</h1>
         </div>
+        {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+        {/* First Name */}
         <p>First Name</p>
         <TextField
           variant="outlined"
@@ -264,9 +304,7 @@ const CreateAccount = () => {
             },
           }}
           disabled={!isFormValid}
-          onClick={() => {
-            //TODO: handle continue action
-          }}
+          onClick={handleSubmit}
         >
           Create Account
         </Button>
