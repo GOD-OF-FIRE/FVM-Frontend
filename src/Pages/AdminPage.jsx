@@ -27,7 +27,6 @@ export default function AdminPage() {
     { name: "Alice Johnson", votes: 75 },
     { name: "Bob Brown", votes: 85 },
   ]);
-  console.log("userData", userData);
   const [newCandidate, setNewCandidate] = useState("");
 
   const handleTabChange = (event, newValue) => {
@@ -46,30 +45,42 @@ export default function AdminPage() {
   };
 
   const mobileView = isMobile();
+  const fetchPendingVoters = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/pending-voters"
+      );
+      setPendingVoters(response.data);
+    } catch (err) {
+      console.error("Error fetching pending voters:", err);
+    }
+  };
+
+  const fetchApprovedVoters = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/approved-voters"
+      );
+      setApprovedVoters(response.data);
+    } catch (err) {
+      console.error("Error fetching approved voters:", err);
+    }
+  };
   useEffect(() => {
-    const fetchPendingVoters = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/admin/pending-voters"
-        );
-        setPendingVoters(response.data);
-      } catch (err) {
-        console.error("Error fetching pending voters:", err);
-      }
-    };
-    const fetchApprovedVoters = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:5000/api/admin/approved-voters"
-        );
-        setApprovedVoters(response.data);
-      } catch (err) {
-        console.error("Error fetching pending voters:", err);
-      }
-    };
     fetchPendingVoters();
-    fetchApprovedVoters()
+    fetchApprovedVoters();
   }, [voterApprovalTab]);
+
+  const handleApprove = async (voterId) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/admin/approve-voter/${voterId}`
+      );
+      fetchPendingVoters();
+    } catch (error) {
+      console.error("Error approving voter:", error);
+    }
+  };
 
   return (
     <>
@@ -162,20 +173,21 @@ export default function AdminPage() {
               </Tabs>
               {voterApprovalTab === 0 && (
                 <Section title="Pending">
-                  {pendingVoters.map((row, index) => (
+                  {pendingVoters.map((voter) => (
                     <ApprovalItem
-                      key={index}
-                      name={`${row?.firstName} ${row?.lastName}`}
+                      key={voter._id}
+                      name={`${voter.firstName} ${voter.lastName}`}
+                      onApprove={() => handleApprove(voter._id)}
                     />
                   ))}
                 </Section>
               )}
               {voterApprovalTab === 1 && (
                 <Section title="Approved">
-                   {approvedVoters.map((row, index) => (
+                  {approvedVoters.map((voter) => (
                     <ApprovalItem
-                      key={index}
-                      name={`${row?.firstName} ${row?.lastName}`}
+                      key={voter._id}
+                      name={`${voter.firstName} ${voter.lastName}`}
                       approved
                     />
                   ))}
@@ -276,7 +288,7 @@ function Section({ title, children }) {
   );
 }
 
-function ApprovalItem({ name, approved = false }) {
+function ApprovalItem({ name, approved = false, onApprove }) {
   return (
     <Paper
       style={{
@@ -306,6 +318,7 @@ function ApprovalItem({ name, approved = false }) {
         <Button
           variant="contained"
           style={{ backgroundColor: "white", color: "black" }}
+          onClick={onApprove}
         >
           Approve
         </Button>
