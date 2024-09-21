@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Avatar,
@@ -11,16 +11,23 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import Header from "../Components/Header";
 import { isMobile } from "../utilities/DetectViewportSize";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
 
 export default function AdminPage() {
+  const location = useLocation();
+  const userData = location.state?.userData;
   const [currentTab, setCurrentTab] = useState("Voter Approval");
   const [voterApprovalTab, setVoterApprovalTab] = useState(0);
+  const [pendingVoters, setPendingVoters] = useState([]);
+  const [approvedVoters, setApprovedVoters] = useState([]);
   const [candidates, setCandidates] = useState([
     { name: "John Doe", votes: 120 },
     { name: "Jane Smith", votes: 95 },
     { name: "Alice Johnson", votes: 75 },
     { name: "Bob Brown", votes: 85 },
   ]);
+  console.log("userData", userData);
   const [newCandidate, setNewCandidate] = useState("");
 
   const handleTabChange = (event, newValue) => {
@@ -39,6 +46,30 @@ export default function AdminPage() {
   };
 
   const mobileView = isMobile();
+  useEffect(() => {
+    const fetchPendingVoters = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/admin/pending-voters"
+        );
+        setPendingVoters(response.data);
+      } catch (err) {
+        console.error("Error fetching pending voters:", err);
+      }
+    };
+    const fetchApprovedVoters = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/admin/approved-voters"
+        );
+        setApprovedVoters(response.data);
+      } catch (err) {
+        console.error("Error fetching pending voters:", err);
+      }
+    };
+    fetchPendingVoters();
+    fetchApprovedVoters()
+  }, [voterApprovalTab]);
 
   return (
     <>
@@ -131,25 +162,22 @@ export default function AdminPage() {
               </Tabs>
               {voterApprovalTab === 0 && (
                 <Section title="Pending">
-                  {[
-                    "Linda Lee",
-                    "Tom Jones",
-                    "Emily Smith",
-                    "Michael Johnson",
-                  ].map((name, index) => (
-                    <ApprovalItem key={index} name={name} />
+                  {pendingVoters.map((row, index) => (
+                    <ApprovalItem
+                      key={index}
+                      name={`${row?.firstName} ${row?.lastName}`}
+                    />
                   ))}
                 </Section>
               )}
               {voterApprovalTab === 1 && (
                 <Section title="Approved">
-                  {[
-                    "Linda Lee",
-                    "Tom Jones",
-                    "Emily Smith",
-                    "Michael Johnson",
-                  ].map((name, index) => (
-                    <ApprovalItem key={index} name={name} approved />
+                   {approvedVoters.map((row, index) => (
+                    <ApprovalItem
+                      key={index}
+                      name={`${row?.firstName} ${row?.lastName}`}
+                      approved
+                    />
                   ))}
                 </Section>
               )}

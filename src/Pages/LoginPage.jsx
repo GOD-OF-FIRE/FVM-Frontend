@@ -1,26 +1,44 @@
 import React, { useState } from "react";
-import {
-  TextField,
-  Button,
-  Box,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
+import { TextField, Button, Box } from "@mui/material";
 import "../Style/LoginPage.css";
 import { isMobile } from "../utilities/DetectViewportSize";
 import { useNavigate } from "react-router-dom";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
+import axios from "axios"; // Import axios for making API requests
 
 const LoginPage = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null); // For displaying error messages
   const mobileView = isMobile();
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    if (isAdmin) {
-      navigate("/admin");
-    } else {
-      navigate("/voting");
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        { username, password }
+      );
+
+      if (response.status === 200) {
+        const { role, status } = response.data;
+
+        // Navigate based on role and status, passing response data in state
+        if (role === "admin") {
+          navigate("/admin", { state: { userData: response.data } });
+        } else if (role === "voter" && status === "approved") {
+          navigate("/voting", { state: { userData: response.data } });
+        }
+      }
+    } catch (err) {
+      // Handle different error cases
+      if (err.response && err.response.status === 403) {
+        setError("Your account is pending approval.");
+      } else if (err.response && err.response.status === 400) {
+        setError("Invalid username or password.");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
     }
   };
 
@@ -28,19 +46,15 @@ const LoginPage = () => {
     <>
       <div className="header">
         {mobileView ? (
-          <>
-            <h3>
-              <HowToVoteIcon sx={{ marginRight: "8px" }} />
-              Fire Voting Management
-            </h3>
-          </>
+          <h3>
+            <HowToVoteIcon sx={{ marginRight: "8px" }} />
+            Fire Voting Management
+          </h3>
         ) : (
-          <>
-            <h1>
-              <HowToVoteIcon sx={{ marginRight: "8px" }} />
-              Fire Voting Management
-            </h1>
-          </>
+          <h1>
+            <HowToVoteIcon sx={{ marginRight: "8px" }} />
+            Fire Voting Management
+          </h1>
         )}
       </div>
       <Box
@@ -69,6 +83,8 @@ const LoginPage = () => {
               variant="outlined"
               fullWidth
               size="small"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               sx={{
                 margin: "10px 0px",
                 backgroundColor: "#333333",
@@ -94,6 +110,8 @@ const LoginPage = () => {
               type="password"
               fullWidth
               size="small"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               sx={{
                 margin: "10px 0px",
                 borderRadius: "8px",
@@ -114,17 +132,7 @@ const LoginPage = () => {
               }}
             />
 
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isAdmin}
-                  onChange={(e) => setIsAdmin(e.target.checked)}
-                  sx={{ color: "#fff" }}
-                />
-              }
-              label="Admin"
-              sx={{ color: "#fff", margin: "10px 0px" }}
-            />
+            {error && <p style={{ color: "red" }}>{error}</p>}
 
             <Button
               variant="contained"
