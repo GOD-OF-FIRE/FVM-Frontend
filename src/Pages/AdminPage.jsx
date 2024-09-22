@@ -21,12 +21,7 @@ export default function AdminPage() {
   const [voterApprovalTab, setVoterApprovalTab] = useState(0);
   const [pendingVoters, setPendingVoters] = useState([]);
   const [approvedVoters, setApprovedVoters] = useState([]);
-  const [candidates, setCandidates] = useState([
-    { name: "John Doe", votes: 120 },
-    { name: "Jane Smith", votes: 95 },
-    { name: "Alice Johnson", votes: 75 },
-    { name: "Bob Brown", votes: 85 },
-  ]);
+  const [candidates, setCandidates] = useState([]);
   const [newCandidate, setNewCandidate] = useState("");
 
   const handleTabChange = (event, newValue) => {
@@ -37,14 +32,34 @@ export default function AdminPage() {
     setVoterApprovalTab(newValue);
   };
 
-  const handleAddCandidate = () => {
+  // const handleAddCandidate = () => {
+  //   if (newCandidate.trim()) {
+  //     setCandidates([...candidates, { name: newCandidate.trim(), votes: 0 }]);
+  //     setNewCandidate("");
+  //   }
+  // };
+
+  const mobileView = isMobile();
+  const handleAddCandidate = async () => {
     if (newCandidate.trim()) {
-      setCandidates([...candidates, { name: newCandidate.trim(), votes: 0 }]);
-      setNewCandidate("");
+      try {
+        // Send request to the backend to create a new candidate
+        const response = await axios.post(
+          "http://localhost:5000/api/admin/create",
+          { name: newCandidate }
+        );
+
+        if (response.status === 201) {
+          console.log("Candidate added:", response.data.candidate);
+          setNewCandidate("");
+          getCandidateList()
+        }
+      } catch (error) {
+        console.error("Error adding candidate:", error);
+      }
     }
   };
 
-  const mobileView = isMobile();
   const fetchPendingVoters = async () => {
     try {
       const response = await axios.get(
@@ -66,10 +81,23 @@ export default function AdminPage() {
       console.error("Error fetching approved voters:", err);
     }
   };
+  const getCandidateList = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/candidateList"
+      );
+      setCandidates(response.data);
+    } catch (err) {
+      console.error("Error fetching Candidate List:", err);
+    }
+  };
   useEffect(() => {
     fetchPendingVoters();
     fetchApprovedVoters();
   }, [voterApprovalTab]);
+  useEffect(() => {
+    getCandidateList();
+  }, [currentTab]);
 
   const handleApprove = async (voterId) => {
     try {
@@ -259,8 +287,8 @@ export default function AdminPage() {
                 {candidates.map((candidate, index) => (
                   <CandidateItem
                     key={index}
-                    name={candidate.name}
-                    votes={candidate.votes}
+                    name={candidate?.name}
+                    votes={candidate?.vote}
                   />
                 ))}
               </Section>

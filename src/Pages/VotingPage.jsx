@@ -1,35 +1,61 @@
-import { useState } from "react";
-import { Button, Card, CardContent, Input } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Button, Card, CardContent } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import Header from "../Components/Header";
 import { isMobile } from "../utilities/DetectViewportSize";
+import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 export default function VotingPage() {
   const mobileView = isMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [candidates, setCandidates] = useState([]);
+  const location = useLocation();
+  const userData = location.state?.userData;
+  console.log("userData", userData);
+  // Fetch the candidate list
+  const getCandidateList = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/admin/candidateList"
+      );
+      setCandidates(response.data); // assuming response.data is an array of candidate objects
+    } catch (err) {
+      console.error("Error fetching Candidate List:", err);
+    }
+  };
 
-  const candidates = [
-    "Candidate 1",
-    "Candidate 2",
-    "Candidate 3",
-    "Candidate 4",
-    "Candidate 5",
-  ];
+  useEffect(() => {
+    getCandidateList();
+  }, []);
 
+  // Filter candidates based on the search term
   const filteredCandidates = candidates.filter((candidate) =>
-    candidate.toLowerCase().includes(searchTerm.toLowerCase())
+    candidate.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Handle voting logic
   const handleVote = (candidate) => {
     setSelectedCandidate(candidate);
   };
 
-  const handleSubmit = () => {
+  // Handle vote submission
+  const handleSubmit = async () => {
     if (selectedCandidate) {
-      alert(`You voted for ${selectedCandidate}`);
-      setSelectedCandidate(null);
-      // Submit vote logic goes here
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/api/voter/vote",
+          {
+            username: userData, // the logged-in user's username
+            candidateName: selectedCandidate?.name, // the candidate they're voting for
+          }
+        );
+        alert(response.data.message);
+      } catch (err) {
+        console.error("Error casting vote:", err);
+        alert(err.response?.data?.message || "Failed to cast vote");
+      }
     } else {
       alert("Please select a candidate before submitting your vote.");
     }
@@ -117,14 +143,14 @@ export default function VotingPage() {
         >
           {filteredCandidates.map((candidate) => (
             <div
-              key={candidate}
+              key={candidate._id}
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
             >
-              <span>{candidate}</span>
+              <span>{candidate.name}</span>
               <Button
                 variant="outline"
                 onClick={() => handleVote(candidate)}

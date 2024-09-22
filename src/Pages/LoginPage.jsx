@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { TextField, Button, Box } from "@mui/material";
 import "../Style/LoginPage.css";
 import { isMobile } from "../utilities/DetectViewportSize";
-import { useNavigate } from "react-router-dom";
 import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import axios from "axios"; // Import axios for making API requests
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [username, setUsername] = useState("");
@@ -27,7 +27,7 @@ const LoginPage = () => {
         if (role === "admin") {
           navigate("/admin", { state: { userData: response.data } });
         } else if (role === "voter" && status === "approved") {
-          navigate("/voting", { state: { userData: response.data } });
+          navigate("/voting", { state: { userData: username } });
         }
       }
     } catch (err) {
