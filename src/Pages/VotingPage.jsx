@@ -74,6 +74,27 @@ export default function VotingPage() {
     }
   };
 
+  const getWinners = () => {
+    if (candidates.length === 0) return null;
+
+    const maxVotes = Math.max(...candidates.map((candidate) => candidate.vote));
+
+    if (maxVotes === 0) {
+      return "No one has won.";
+    }
+
+    const winners = candidates.filter(
+      (candidate) => candidate.vote === maxVotes
+    );
+
+    // If multiple candidates have the highest vote count, display them all
+    if (winners.length > 1) {
+      return `Winners: ${winners.map((winner) => winner.name).join(", ")}`;
+    }
+
+    return `Winner: ${winners[0].name}`;
+  };
+
   return (
     <>
       <Header />
@@ -144,9 +165,9 @@ export default function VotingPage() {
           </Card>
         </div>
         <hr style={{ border: "1px solid #ccc", margin: "12px" }} />
-        {votingStatus == "started" ? (
+
+        {votingStatus === "started" ? (
           <>
-            {" "}
             <div
               style={{
                 display: "flex",
@@ -202,7 +223,14 @@ export default function VotingPage() {
             </div>
           </>
         ) : (
-          <>Voting hasn't started yet please wait for next Election</>
+          <>
+            <div
+              style={{ marginTop: "20px", fontWeight: "bold", color: "white" }}
+            >
+              {getWinners()}
+            </div>
+            Voting hasn't started yet please wait for the next Election
+          </>
         )}
       </main>
     </>
