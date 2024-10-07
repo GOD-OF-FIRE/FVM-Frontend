@@ -12,6 +12,7 @@ export default function VotingPage() {
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const location = useLocation();
+  const [votingStatus, setVotingStatus] = useState([]);
   const userData = location.state?.userData;
   console.log("userData", userData);
   // Fetch the candidate list
@@ -25,7 +26,19 @@ export default function VotingPage() {
       console.error("Error fetching Candidate List:", err);
     }
   };
-
+  useEffect(() => {
+    const fetchVotingStatus = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/voter/getVotingStatus"
+        );
+        setVotingStatus(response.data?.status); // Set the voting status in state
+      } catch (error) {
+        console.error("Error fetching voting status:", error);
+      }
+    };
+    fetchVotingStatus();
+  }, []);
   useEffect(() => {
     getCandidateList();
   }, []);
@@ -131,59 +144,66 @@ export default function VotingPage() {
           </Card>
         </div>
         <hr style={{ border: "1px solid #ccc", margin: "12px" }} />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-            margin: "12px",
-            maxHeight: "50vh",
-            overflowY: "auto",
-          }}
-        >
-          {filteredCandidates.map((candidate) => (
+        {votingStatus == "started" ? (
+          <>
+            {" "}
             <div
-              key={candidate._id}
               style={{
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                flexDirection: "column",
+                gap: "16px",
+                margin: "12px",
+                maxHeight: "50vh",
+                overflowY: "auto",
               }}
             >
-              <span>{candidate.name}</span>
+              {filteredCandidates.map((candidate) => (
+                <div
+                  key={candidate._id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>{candidate.name}</span>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleVote(candidate)}
+                    style={{
+                      backgroundColor:
+                        selectedCandidate === candidate ? "#2563EB" : "#4B5563",
+                      color: "white",
+                      marginRight: "1rem",
+                    }}
+                  >
+                    {selectedCandidate === candidate ? "Selected" : "Vote"}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                margin: "18px 12px",
+              }}
+            >
               <Button
-                variant="outline"
-                onClick={() => handleVote(candidate)}
+                variant="default"
+                onClick={handleSubmit}
                 style={{
-                  backgroundColor:
-                    selectedCandidate === candidate ? "#2563EB" : "#4B5563",
-                  color: "white",
-                  marginRight: "1rem",
+                  backgroundColor: "white",
+                  color: "black",
                 }}
               >
-                {selectedCandidate === candidate ? "Selected" : "Vote"}
+                Submit Vote
               </Button>
             </div>
-          ))}
-        </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "flex-end",
-            margin: "18px 12px",
-          }}
-        >
-          <Button
-            variant="default"
-            onClick={handleSubmit}
-            style={{
-              backgroundColor: "white",
-              color: "black",
-            }}
-          >
-            Submit Vote
-          </Button>
-        </div>
+          </>
+        ) : (
+          <>Voting hasn't started yet please wait for next Election</>
+        )}
       </main>
     </>
   );

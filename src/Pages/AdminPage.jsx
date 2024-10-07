@@ -23,7 +23,7 @@ export default function AdminPage() {
   const [approvedVoters, setApprovedVoters] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [newCandidate, setNewCandidate] = useState("");
-
+  const [btnText, setBtnText] = useState("");
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
   };
@@ -52,7 +52,7 @@ export default function AdminPage() {
         if (response.status === 201) {
           console.log("Candidate added:", response.data.candidate);
           setNewCandidate("");
-          getCandidateList()
+          getCandidateList();
         }
       } catch (error) {
         console.error("Error adding candidate:", error);
@@ -97,7 +97,7 @@ export default function AdminPage() {
   }, [voterApprovalTab]);
   useEffect(() => {
     getCandidateList();
-  }, [currentTab]);
+  }, [currentTab, btnText]);
 
   const handleApprove = async (voterId) => {
     try {
@@ -112,7 +112,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <Header />
+      <Header btnText={btnText} setBtnText={setBtnText} />
       <div
         style={{
           display: "flex",
