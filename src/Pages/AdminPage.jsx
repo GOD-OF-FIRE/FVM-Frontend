@@ -45,7 +45,7 @@ export default function AdminPage() {
       try {
         // Send request to the backend to create a new candidate
         const response = await axios.post(
-          "http://localhost:5000/api/admin/create",
+          "https://fvm-backend.onrender.com/api/admin/create",
           { name: newCandidate }
         );
 
@@ -63,7 +63,7 @@ export default function AdminPage() {
   const fetchPendingVoters = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/admin/pending-voters"
+        "https://fvm-backend.onrender.com/api/admin/pending-voters"
       );
       setPendingVoters(response.data);
     } catch (err) {
@@ -74,7 +74,7 @@ export default function AdminPage() {
   const fetchApprovedVoters = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/admin/approved-voters"
+        "https://fvm-backend.onrender.com/api/admin/approved-voters"
       );
       setApprovedVoters(response.data);
     } catch (err) {
@@ -84,7 +84,7 @@ export default function AdminPage() {
   const getCandidateList = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/admin/candidateList"
+        "https://fvm-backend.onrender.com/api/admin/candidateList"
       );
       setCandidates(response.data);
     } catch (err) {
@@ -102,7 +102,7 @@ export default function AdminPage() {
   const handleApprove = async (voterId) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/admin/approve-voter/${voterId}`
+        `https://fvm-backend.onrender.com/api/admin/approve-voter/${voterId}`
       );
       fetchPendingVoters();
     } catch (error) {

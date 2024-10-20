@@ -18,7 +18,7 @@ const Header = ({ setBtnText, btnText }) => {
       const newStatus = btnText === "Start" ? "started" : "stopped";
 
       const response = await axios.post(
-        "http://localhost:5000/api/admin/setVotingStatus",
+        "https://fvm-backend.onrender.com//api/admin/setVotingStatus",
         {
           status: newStatus,
         }
@@ -37,7 +37,7 @@ const Header = ({ setBtnText, btnText }) => {
     const fetchVotingStatus = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/voter/getVotingStatus"
+          "https://fvm-backend.onrender.com/api/voter/getVotingStatus"
         );
         if (response.data?.status == "started") {
           setBtnText("End"); // Set the voting status in state

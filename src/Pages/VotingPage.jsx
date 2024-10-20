@@ -19,7 +19,7 @@ export default function VotingPage() {
   const getCandidateList = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/admin/candidateList"
+        "https://fvm-backend.onrender.com/api/admin/candidateList"
       );
       setCandidates(response.data); // assuming response.data is an array of candidate objects
     } catch (err) {
@@ -30,7 +30,7 @@ export default function VotingPage() {
     const fetchVotingStatus = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/voter/getVotingStatus"
+          "https://fvm-backend.onrender.com/api/voter/getVotingStatus"
         );
         setVotingStatus(response.data?.status); // Set the voting status in state
       } catch (error) {
@@ -58,7 +58,7 @@ export default function VotingPage() {
     if (selectedCandidate) {
       try {
         const response = await axios.post(
-          "http://localhost:5000/api/voter/vote",
+          "https://fvm-backend.onrender.com/api/voter/vote",
           {
             username: userData, // the logged-in user's username
             candidateName: selectedCandidate?.name, // the candidate they're voting for
